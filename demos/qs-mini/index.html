@@ -1,0 +1,715 @@
+<title>Bàn làm việc QS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sổ tay QS. Thanh tiêu đề dự án, 4 tab module, mỗi tab gồm khung điều khiển + bảng tính + biểu đồ. */
+:root {
+  --bg: #eef1f0;
+  --surface: #ffffff;
+  --sunken: #f6f8f7;
+  --ink: #17211f;
+  --muted: #5a6865;
+  --line: #d5dddb;
+  --accent: #0f6b62;
+  --accent-soft: #dcefec;
+  --hi: #c98a00;
+  --ok: #2b7a4b;
+  --ok-soft: #e1f2e7;
+  --warn: #a8670b;
+  --warn-soft: #fbefd9;
+  --bad: #b02a22;
+  --bad-soft: #f9e3e1;
+  --idle: #a3aeab;
+  --font-ui: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1514; --surface: #172120; --sunken: #1c2826; --ink: #e5ecea; --muted: #94a3a0;
+    --line: #2b3735; --accent: #4fc0b0; --accent-soft: #173a36; --hi: #e2b13c;
+    --ok: #5cc185; --ok-soft: #173326; --warn: #e3a64a; --warn-soft: #3a2c14;
+    --bad: #f07a70; --bad-soft: #3d1d1a; --idle: #5d6a67; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1514; --surface: #172120; --sunken: #1c2826; --ink: #e5ecea; --muted: #94a3a0;
+  --line: #2b3735; --accent: #4fc0b0; --accent-soft: #173a36; --hi: #e2b13c;
+  --ok: #5cc185; --ok-soft: #173326; --warn: #e3a64a; --warn-soft: #3a2c14;
+  --bad: #f07a70; --bad-soft: #3d1d1a; --idle: #5d6a67; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 14px; line-height: 1.5; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 20px 48px; }
+header.top { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: end; justify-content: space-between; padding-bottom: 14px; border-bottom: 2px solid var(--ink); }
+header.top h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+.proj { color: var(--muted); font-size: 13px; }
+.proj b { color: var(--ink); font-weight: 600; }
+.sample { font-size: 12px; color: var(--warn); background: var(--warn-soft); padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+nav.tabs { display: flex; gap: 2px; overflow-x: auto; margin-block: 16px 20px; border-bottom: 1px solid var(--line); }
+nav.tabs button { font: inherit; background: none; border: 0; border-bottom: 3px solid transparent; color: var(--muted); padding: 10px 14px 9px; cursor: pointer; white-space: nowrap; display: flex; gap: 8px; align-items: baseline; }
+nav.tabs button .k { font-family: var(--font-num); font-size: 11px; color: var(--idle); }
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+nav.tabs button:hover { color: var(--ink); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lead { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 24px; align-items: start; margin-bottom: 16px; }
+.lead h2 { margin: 0 0 4px; font-size: 19px; font-weight: 600; text-wrap: balance; }
+.lead p { margin: 0; color: var(--muted); max-width: 70ch; }
+.src { font-family: var(--font-num); font-size: 11.5px; color: var(--muted); background: var(--sunken); border: 1px solid var(--line); padding: 4px 8px; border-radius: 4px; white-space: nowrap; }
+.grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; min-width: 0; }
+.panel h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.field input[type="number"], .field input[type="text"], .field select { font: 500 14px var(--font-num); color: var(--ink); background: var(--sunken); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; width: 150px; }
+.field input[type="text"].wide { font-family: var(--font-ui); width: min(420px, 100%); }
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink); cursor: pointer; }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+input[type="range"] { accent-color: var(--accent); width: 180px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; background: var(--sunken); white-space: nowrap; }
+td.n, th.n { text-align: right; font-family: var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.out td { color: var(--muted); }
+.chip { display: inline-block; font-size: 11.5px; font-weight: 500; padding: 1px 8px; border-radius: 10px; white-space: nowrap; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.chip.info { background: var(--accent-soft); color: var(--accent); }
+.notes { display: flex; flex-wrap: wrap; gap: 4px; min-width: 160px; }
+.notes .chip { white-space: normal; }
+td.nm { min-width: 170px; }
+.rank { font: 600 15px var(--font-num); color: var(--accent); }
+.best { background: var(--accent-soft); }
+.lo { color: var(--ok); font-weight: 600; }
+.hi { color: var(--bad); }
+.bars { display: flex; flex-direction: column; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 13px; }
+.bar-track { position: relative; height: 26px; background: var(--sunken); border-radius: 3px; }
+.bar-fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 3px; transition: width .35s ease; }
+.bar-fill.excluded { background: repeating-linear-gradient(135deg, var(--idle) 0 6px, transparent 6px 10px); opacity: .7; }
+.bar-fill.adj { background: var(--hi); }
+.bar-label { position: absolute; right: 8px; top: 3px; font: 500 12.5px var(--font-num); color: var(--ink); white-space: nowrap; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; min-width: 0; }
+.kpi .l { font-size: 12px; color: var(--muted); }
+.kpi .v { font: 600 21px var(--font-num); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.kpi .s { font-size: 12px; color: var(--muted); }
+.v.pos { color: var(--ok); } .v.neg { color: var(--bad); }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.presets button { font: inherit; font-size: 12.5px; background: var(--sunken); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; padding: 3px 10px; cursor: pointer; }
+.presets button:hover { border-color: var(--accent); color: var(--accent); }
+.match { border-top: 1px solid var(--line); padding-block: 12px; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; }
+.match:first-child { border-top: 0; padding-top: 0; }
+.score { font: 600 18px var(--font-num); }
+.score.ok { color: var(--ok); } .score.warn { color: var(--warn); } .score.bad { color: var(--bad); }
+.match .desc { font-weight: 500; }
+.match .code { font-family: var(--font-num); font-size: 12px; color: var(--muted); }
+.match .why { grid-column: 2 / 4; font-size: 12.5px; color: var(--muted); }
+.factors { grid-column: 2 / 4; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--muted); }
+.factors span b { font-family: var(--font-num); color: var(--ink); font-weight: 500; }
+.tok { display: inline-block; font-family: var(--font-num); font-size: 11.5px; padding: 0 6px; border-radius: 3px; margin: 1px 2px 1px 0; }
+.tok.hit { background: var(--ok-soft); color: var(--ok); }
+.tok.miss { background: var(--bad-soft); color: var(--bad); }
+.tok.q { background: var(--sunken); border: 1px solid var(--line); }
+.price { font-family: var(--font-num); text-align: right; font-size: 13px; }
+.price small { display: block; color: var(--muted); font-size: 11.5px; }
+td input.cell { font: 500 13px var(--font-num); text-align: right; width: 110px; color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: 3px; padding: 2px 4px; }
+td input.cell:hover { border-color: var(--line); }
+td input.cell:focus { background: var(--sunken); border-color: var(--accent); outline: none; }
+tr.sev-bad td:first-child { box-shadow: inset 3px 0 0 var(--bad); }
+tr.sev-warn td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
+tr.sev-ok td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
+.light { display: flex; gap: 16px; align-items: center; }
+.lamp { display: flex; flex-direction: column; gap: 6px; background: var(--ink); padding: 8px; border-radius: 18px; }
+.lamp i { width: 18px; height: 18px; border-radius: 50%; background: var(--idle); opacity: .35; }
+.lamp i.on.r { background: #e5483d; opacity: 1; } .lamp i.on.y { background: #f2b52c; opacity: 1; } .lamp i.on.g { background: #3fbf6c; opacity: 1; }
+.bigscore { font: 600 40px var(--font-num); line-height: 1; }
+.issues { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.issues li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: baseline; }
+svg text { fill: var(--muted); font-family: var(--font-num); font-size: 11px; }
+.chart-wrap { overflow-x: auto; }
+.chart-wrap svg { display: block; width: 100%; min-width: 560px; height: auto; }
+.mbar { position: relative; height: 14px; width: 140px; background: var(--sunken); border-radius: 2px; }
+.mbar .mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--muted); }
+.mbar .f { position: absolute; top: 0; bottom: 0; border-radius: 2px; }
+.foot { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12.5px; }
+@media (max-width: 860px) {
+  .grid2 { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lead { grid-template-columns: minmax(0, 1fr); }
+  .src { white-space: normal; justify-self: start; }
+}
+@media (max-width: 480px) {
+  .wrap { padding-inline: 16px; }
+  .bar-row { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .kpi .v { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar-fill { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="proj">Dự án <b>KCN-A12</b> · Nhà xưởng &amp; văn phòng điều hành · 18.400 m² CFA</div>
+      <h1>Bàn làm việc QS</h1>
+    </div>
+    <span class="sample">Số liệu mẫu để demo, không phải dữ liệu thật</span>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Module">
+    <button role="tab" id="t-bao-gia" aria-controls="p-bao-gia" aria-selected="true" data-tab="bao-gia"><span class="k">M1</span>So sánh báo giá</button>
+    <button role="tab" id="t-don-gia" aria-controls="p-don-gia" aria-selected="false" data-tab="don-gia"><span class="k">M2</span>Ghép đơn giá</button>
+    <button role="tab" id="t-kiem-tra" aria-controls="p-kiem-tra" aria-selected="false" data-tab="kiem-tra"><span class="k">M3</span>Kiểm tra BOQ</button>
+    <button role="tab" id="t-cvr" aria-controls="p-cvr" aria-selected="false" data-tab="cvr"><span class="k">M4</span>CVR &amp; dòng tiền</button>
+  </nav>
+
+  <!-- ───────────── M1 ───────────── -->
+  <section id="p-bao-gia" role="tabpanel" aria-labelledby="t-bao-gia">
+    <div class="lead">
+      <div>
+        <h2>Gói nhôm kính mặt dựng, Block A: 4 NTP chào giá</h2>
+        <p>Đưa các báo giá về cùng một cơ sở rồi mới xếp hạng. Báo giá ngoại tệ chỉ được quy đổi khi đã ghi nhận tỷ giá. Hạng mục bị loại trừ thì cộng lại theo số tiền đã ghi. Phần không ai chào thì không tự điền giá thay. Thử bật tắt các điều kiện bên dưới để xem thứ hạng thay đổi.</p>
+      </div>
+      <span class="src">rfq_bidding/comparison.py</span>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="controls">
+          <label class="check"><input type="checkbox" id="q-rate-ok" checked> Đã ghi nhận tỷ giá USD của NTP B</label>
+          <label class="field">Tỷ giá (VND/USD)<input type="number" id="q-rate" value="25400" step="50" min="0"></label>
+          <label class="check"><input type="checkbox" id="q-admit"> Chấp nhận báo giá nộp trễ của NTP D</label>
+          <label class="field">Dự phòng cho lam nhôm NTP C không chào (VND)<input type="number" id="q-allow" value="0" step="10000000" min="0"></label>
+          <label class="field">Trọng số kỹ thuật: <span id="q-w-out">0%</span><input type="range" id="q-w" min="0" max="60" step="10" value="0"></label>
+        </div>
+      </div>
+      <div class="panel scroll">
+        <h3>Bảng xếp hạng</h3>
+        <table>
+          <thead><tr><th>Hạng</th><th>Nhà thầu phụ</th><th class="n">Giá chào</th><th class="n">Cộng loại trừ / dự phòng</th><th class="n">Giá so sánh (VND)</th><th class="n">Điểm KT</th><th class="n" id="q-score-h">Chênh so với thấp nhất</th><th>Trạng thái &amp; ghi chú</th></tr></thead>
+          <tbody id="q-rank"></tbody>
+        </table>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <h3>Giá so sánh</h3>
+          <div class="bars" id="q-bars"></div>
+          <div class="legend"><span><i style="background:var(--accent)"></i>Được xếp hạng</span><span><i style="background:var(--hi)"></i>Hạng 1</span><span><i style="background:var(--idle)"></i>Chưa đủ điều kiện so sánh</span></div>
+        </div>
+        <div class="panel scroll">
+          <h3>Đơn giá theo hạng mục (VND)</h3>
+          <table>
+            <thead id="q-lines-h"></thead>
+            <tbody id="q-lines"></tbody>
+          </table>
+          <div class="legend"><span class="lo">Xanh</span> = thấp nhất dòng · <span class="hi">Đỏ</span> = cao hơn trung vị trên 10% · “–” = không chào</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── M2 ───────────── -->
+  <section id="p-don-gia" role="tabpanel" aria-labelledby="t-don-gia" hidden>
+    <div class="lead">
+      <div>
+        <h2>Ghép diễn giải BOQ với CSDL đơn giá</h2>
+        <p>Diễn giải được bỏ dấu, quy về khái niệm chung (cốp pha = ván khuôn = formwork, C25 ≈ mác 300) rồi chấm điểm minh bạch. Điểm = 0,65 × độ phủ từ khóa + 0,35 × độ trùng, nhân 0,55 nếu đơn vị khác thứ nguyên. Từ 0,75 là khớp chắc, từ 0,45 đến dưới 0,75 cần QS soát lại.</p>
+      </div>
+      <span class="src">cost_match/matcher.py</span>
+    </div>
+    <div class="stack">
+      <div class="panel">
+        <div class="controls">
+          <label class="field" style="flex:1 1 320px">Diễn giải hạng mục<input type="text" class="wide" id="m-q" value="Bê tông cột mác 300 đá 1x2"></label>
+          <label class="field">ĐVT<select id="m-u"><option>m3</option><option>m2</option><option>m</option><option>kg</option><option>tấn</option><option>100m2</option><option>100m3</option></select></label>
+        </div>
+        <div class="presets" style="margin-top:12px" id="m-presets"></div>
+        <div style="margin-top:12px;font-size:12.5px;color:var(--muted)">Từ khóa sau chuẩn hóa: <span id="m-toks"></span></div>
+      </div>
+      <div class="panel">
+        <h3>5 ứng viên tốt nhất trong CSDL mẫu (15 mã định mức)</h3>
+        <div id="m-out"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── M3 ───────────── -->
+  <section id="p-kiem-tra" role="tabpanel" aria-labelledby="t-kiem-tra" hidden>
+    <div class="lead">
+      <div>
+        <h2>Kiểm tra chất lượng BOQ trước khi chào giá</h2>
+        <p>Kiểm tra các lỗi: thiếu khối lượng, đơn giá bằng 0, hạng mục trùng, thiếu mã NRM2, đơn giá lệch quá 30% so với CSDL. Sửa trực tiếp ô Khối lượng hoặc Đơn giá thì điểm được tính lại ngay.</p>
+      </div>
+      <span class="src">core/validation/rules</span>
+    </div>
+    <div class="stack">
+      <div class="grid2">
+        <div class="panel">
+          <h3>Điểm chất lượng</h3>
+          <div class="light">
+            <div class="lamp" aria-hidden="true"><i class="r" id="v-r"></i><i class="y" id="v-y"></i><i class="g" id="v-g"></i></div>
+            <div>
+              <div class="bigscore" id="v-score">0</div>
+              <div style="color:var(--muted);font-size:13px" id="v-verdict"></div>
+              <div style="margin-top:8px;font-size:13px">Tổng giá trị: <b class="n" style="font-family:var(--font-num)" id="v-total"></b></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Danh sách vấn đề</h3>
+          <ul class="issues" id="v-issues"></ul>
+        </div>
+      </div>
+      <div class="panel scroll">
+        <h3>BOQ phần xây dựng (trích)</h3>
+        <table>
+          <thead><tr><th>#</th><th>NRM2</th><th>Diễn giải</th><th>ĐVT</th><th class="n">Khối lượng</th><th class="n">Đơn giá</th><th class="n">Giá CSDL</th><th class="n">Thành tiền</th><th>Kiểm tra</th></tr></thead>
+          <tbody id="v-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── M4 ───────────── -->
+  <section id="p-cvr" role="tabpanel" aria-labelledby="t-cvr" hidden>
+    <div class="lead">
+      <div>
+        <h2>CVR tháng 8: chi phí so với giá trị thực hiện</h2>
+        <p>Lợi nhuận lũy kế = giá trị thực hiện − chi phí. Lợi nhuận dự báo = giá trị dự báo − chi phí dự báo. Hệ thống cảnh báo khi dự báo thấp hơn số đã phát sinh. Sửa các ô số (triệu đồng) để thử kịch bản.</p>
+      </div>
+      <span class="src">cvr/compute.py</span>
+    </div>
+    <div class="stack">
+      <div class="kpis" id="c-kpis"></div>
+      <div class="panel scroll">
+        <h3>Theo đầu mục chi phí (triệu VND)</h3>
+        <table>
+          <thead><tr><th>Mã</th><th>Đầu mục</th><th class="n">Chi phí lũy kế</th><th class="n">Giá trị lũy kế</th><th class="n">Trích trước</th><th class="n">Chi phí dự báo</th><th class="n">Giá trị dự báo</th><th class="n">LN dự báo</th><th>Biên LN dự báo</th><th>Cảnh báo</th></tr></thead>
+          <tbody id="c-rows"></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="controls" style="justify-content:space-between">
+          <h3 style="margin:0">Đường cong S lũy kế (tỷ VND)</h3>
+          <label class="field">Giữ lại bảo hành (%)<input type="number" id="c-ret" value="5" min="0" max="20" step="1"></label>
+        </div>
+        <div class="chart-wrap" style="margin-top:8px"><svg id="c-chart" viewBox="0 0 760 300" role="img" aria-label="Đường cong S"></svg></div>
+        <div class="legend"><span><i style="background:var(--idle)"></i>Kế hoạch giá trị</span><span><i style="background:var(--accent)"></i>Giá trị thực hiện</span><span><i style="background:var(--bad)"></i>Chi phí thực tế</span><span><i style="background:var(--hi)"></i>Thực nhận (sau giữ lại)</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">Demo tĩnh, chạy hoàn toàn trên trình duyệt. Logic được rút gọn từ các module tương ứng của OpenConstructionERP, mỗi tab ghi tên file nguồn ở góc phải.</div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var VND = function (n) { return Math.round(n).toLocaleString("vi-VN"); };
+  var TR = function (n) { return Math.round(n).toLocaleString("vi-VN"); };
+  var P1 = function (n) { return n.toLocaleString("vi-VN", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+
+  /* ── Tabs ─────────────────────────────────────────── */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll("nav.tabs button"));
+  function show(name) {
+    tabs.forEach(function (b) {
+      var on = b.dataset.tab === name;
+      b.setAttribute("aria-selected", on ? "true" : "false");
+      $("p-" + b.dataset.tab).hidden = !on;
+    });
+    try { localStorage.setItem("qs-tab", name); } catch (e) {}
+  }
+  tabs.forEach(function (b) { b.addEventListener("click", function () { show(b.dataset.tab); }); });
+  var start = (location.hash || "").slice(1);
+  if (!tabs.some(function (b) { return b.dataset.tab === start; })) {
+    try { start = localStorage.getItem("qs-tab") || "bao-gia"; } catch (e) { start = "bao-gia"; }
+  }
+  if (!tabs.some(function (b) { return b.dataset.tab === start; })) start = "bao-gia";
+  show(start);
+
+  /* ══ M1 · So sánh báo giá ══════════════════════════ */
+  var SCOPE = [
+    { id: "L1", name: "Vách kính mặt dựng unitized", unit: "m²", qty: 1250 },
+    { id: "L2", name: "Cửa đi nhôm kính D1", unit: "bộ", qty: 48 },
+    { id: "L3", name: "Cửa sổ lật W1", unit: "bộ", qty: 160 },
+    { id: "L4", name: "Lam nhôm che nắng", unit: "m", qty: 620 },
+    { id: "L5", name: "Silicone, phụ kiện hoàn thiện", unit: "TG", qty: 1 }
+  ];
+  var QUOTES = [
+    { id: "A", name: "NTP A · Nhôm kính Đông Á", cur: "VND", tech: 82,
+      rates: { L1: 4850000, L2: 12500000, L3: 3900000, L4: 820000, L5: 95000000 },
+      excl: [{ label: "Giàn giáo bao che", amount: 180000000 }] },
+    { id: "B", name: "NTP B · Façade Sài Gòn", cur: "USD", tech: 90,
+      rates: { L1: 182, L2: 470, L3: 150, L4: 30, L5: 3500 },
+      excl: [{ label: "Vận chuyển, thuế nhập khẩu", amount: 420000000 }] },
+    { id: "C", name: "NTP C · Kính Việt Hưng", cur: "VND", tech: 70,
+      rates: { L1: 4700000, L2: 11800000, L3: 3750000, L5: 80000000 }, excl: [] },
+    { id: "D", name: "NTP D · Alu Tech Miền Bắc", cur: "VND", tech: 78, late: true, headline: 7850000000,
+      rates: { L1: 4900000, L2: 12000000, L3: 3800000, L4: 790000, L5: 90000000 }, excl: [] }
+  ];
+  var REASON = {
+    late: "Nộp trễ, chưa được chấp nhận",
+    fx: "Chưa ghi nhận tỷ giá, không quy đổi",
+    scope: "Thiếu phạm vi, chưa có dự phòng"
+  };
+
+  function levelQuotes() {
+    var rateOk = $("q-rate-ok").checked, rate = Number($("q-rate").value) || 0;
+    var admit = $("q-admit").checked, allow = Number($("q-allow").value) || 0;
+    var w = Number($("q-w").value) / 100;
+    var res = QUOTES.map(function (q) {
+      var r = { q: q, reasons: [], notes: [], raw: 0, add: 0, total: null };
+      if (q.late && !admit) r.reasons.push(REASON.late);
+      if (q.late && admit) r.notes.push(["info", "Nộp trễ, đã chấp nhận"]);
+      var fx = 1;
+      if (q.cur !== "VND") {
+        if (!rateOk || rate <= 0) r.reasons.push(REASON.fx); else { fx = rate; r.notes.push(["info", "Quy đổi " + q.cur + " @ " + VND(rate)]); }
+      }
+      var missing = [];
+      SCOPE.forEach(function (l) {
+        if (q.rates[l.id] == null) missing.push(l); else r.raw += q.rates[l.id] * l.qty * fx;
+      });
+      if (q.headline && Math.abs(q.headline - r.raw) > 1000000) r.notes.push(["warn", "Tổng các dòng lệch giá chào " + VND(r.raw - q.headline)]);
+      q.excl.forEach(function (e) { r.add += e.amount; r.notes.push(["info", "Cộng lại: " + e.label]); });
+      if (missing.length) {
+        if (q.id === "C" && allow > 0) { r.add += allow; r.notes.push(["warn", "Thiếu " + missing.map(function (m) { return m.name; }).join(", ") + ", đã cộng dự phòng do bên mua ghi nhận"]); }
+        else r.reasons.push(REASON.scope + " (" + missing.map(function (m) { return m.name; }).join(", ") + ")");
+      }
+      if (q.cur === "VND" || (rateOk && rate > 0)) r.total = r.raw + r.add;
+      return r;
+    });
+    var ranked = res.filter(function (r) { return !r.reasons.length; });
+    var min = Math.min.apply(null, ranked.map(function (r) { return r.total; }));
+    ranked.forEach(function (r) {
+      r.priceScore = min / r.total * 100;
+      r.blend = (1 - w) * r.priceScore + w * r.q.tech;
+    });
+    ranked.sort(function (a, b) { return w > 0 ? b.blend - a.blend : a.total - b.total; });
+    ranked.forEach(function (r, i) { r.rank = i + 1; });
+    return { res: res, min: min, w: w, fx: rateOk ? rate : 0 };
+  }
+
+  function renderQuotes() {
+    var L = levelQuotes();
+    $("q-w-out").textContent = Math.round(L.w * 100) + "%";
+    $("q-score-h").textContent = L.w > 0 ? "Điểm tổng hợp" : "Chênh so với thấp nhất";
+    var rows = L.res.slice().sort(function (a, b) { return (a.rank || 99) - (b.rank || 99); });
+    $("q-rank").innerHTML = rows.map(function (r) {
+      var chips = r.reasons.map(function (x) { return '<span class="chip bad">' + esc(x) + "</span>"; })
+        .concat(r.notes.map(function (n) { return '<span class="chip ' + n[0] + '">' + esc(n[1]) + "</span>"; }));
+      if (!r.reasons.length && r.rank === 1) chips.unshift('<span class="chip ok">Đề xuất trao thầu</span>');
+      var last = r.rank ? (L.w > 0 ? P1(r.blend) : (r.total === L.min ? "—" : "+" + P1((r.total / L.min - 1) * 100) + "%")) : "";
+      var rawTxt = r.q.cur === "VND" ? VND(r.raw) : (L.fx ? VND(r.raw) : "≈ " + VND(r.raw) + " USD");
+      return '<tr class="' + (r.rank ? (r.rank === 1 ? "best" : "") : "out") + '"><td class="rank">' + (r.rank || "–") + "</td><td>" + esc(r.q.name) + '</td><td class="n">' + rawTxt +
+        '</td><td class="n">' + (r.add ? "+" + VND(r.add) : "–") + '</td><td class="n"><b>' + (r.total != null ? VND(r.total) : "–") + '</b></td><td class="n">' + r.q.tech +
+        '</td><td class="n">' + last + '</td><td><div class="notes">' + chips.join("") + "</div></td></tr>";
+    }).join("");
+    var max = Math.max.apply(null, L.res.map(function (r) { return r.total || 0; }));
+    $("q-bars").innerHTML = rows.map(function (r) {
+      var val = r.total || 0, pct = max ? val / max * 100 : 0;
+      var cls = r.reasons.length ? "excluded" : (r.rank === 1 ? "adj" : "");
+      var lbl = r.total != null ? (r.total / 1e9).toLocaleString("vi-VN", { maximumFractionDigits: 3 }) + " tỷ" : "không quy đổi";
+      return '<div class="bar-row"><div>' + esc(r.q.name.split(" · ")[0]) + (r.rank ? " · hạng " + r.rank : "") + '</div><div class="bar-track"><div class="bar-fill ' + cls + '" style="width:' + (r.total != null ? Math.max(pct, 2) : 0) + '%"></div><span class="bar-label">' + lbl + "</span></div></div>";
+    }).join("");
+    // line matrix
+    $("q-lines-h").innerHTML = "<tr><th>Hạng mục</th><th>ĐVT</th><th class='n'>KL</th>" + QUOTES.map(function (q) { return "<th class='n'>" + q.id + "</th>"; }).join("") + "</tr>";
+    $("q-lines").innerHTML = SCOPE.map(function (l) {
+      var vals = QUOTES.map(function (q) {
+        var v = q.rates[l.id];
+        if (v == null) return null;
+        if (q.cur !== "VND") return L.fx ? v * L.fx : null;
+        return v;
+      });
+      var have = vals.filter(function (v) { return v != null; }).sort(function (a, b) { return a - b; });
+      var med = have.length ? (have.length % 2 ? have[(have.length - 1) / 2] : (have[have.length / 2 - 1] + have[have.length / 2]) / 2) : 0;
+      return "<tr><td>" + esc(l.name) + "</td><td>" + l.unit + "</td><td class='n'>" + VND(l.qty) + "</td>" + vals.map(function (v) {
+        if (v == null) return "<td class='n' style='color:var(--muted)'>–</td>";
+        var cls = v === have[0] ? "lo" : (v > med * 1.1 ? "hi" : "");
+        return "<td class='n " + cls + "'>" + VND(v) + "</td>";
+      }).join("") + "</tr>";
+    }).join("");
+  }
+  ["q-rate-ok", "q-rate", "q-admit", "q-allow", "q-w"].forEach(function (id) { $(id).addEventListener("input", renderQuotes); });
+  renderQuotes();
+
+  /* ══ M2 · Ghép đơn giá ══════════════════════════════ */
+  var DB = [
+    { code: "AF.12313", desc: "Bê tông cột tiết diện ≤0,1m², cao ≤28m, đá 1x2, mác 300", unit: "m3", price: 1690000 },
+    { code: "AF.22234", desc: "Bê tông sàn mái, đá 1x2, mác 300", unit: "m3", price: 1610000 },
+    { code: "AF.15233", desc: "Bê tông móng, đá 1x2, mác 250", unit: "m3", price: 1480000 },
+    { code: "AF.11213", desc: "Bê tông lót móng, đá 4x6, mác 100", unit: "m3", price: 1150000 },
+    { code: "AF.61120", desc: "Cốt thép cột, đường kính ≤18mm, cao ≤28m", unit: "tấn", price: 19200000 },
+    { code: "AF.81132", desc: "Ván khuôn gỗ cột vuông, chữ nhật", unit: "100m2", price: 17200000 },
+    { code: "AE.22214", desc: "Xây tường gạch đặc 6,5x10,5x22, dày ≤33cm, vữa XM mác 75", unit: "m3", price: 1420000 },
+    { code: "AK.21224", desc: "Trát tường ngoài dày 1,5cm, vữa XM mác 75", unit: "m2", price: 92000 },
+    { code: "AK.84114", desc: "Sơn tường ngoài nhà, 1 nước lót 2 nước phủ", unit: "m2", price: 78000 },
+    { code: "AK.51250", desc: "Lát nền gạch ceramic 600x600", unit: "m2", price: 265000 },
+    { code: "AB.25112", desc: "Đào móng bằng máy đào ≤0,8m³, đất cấp II", unit: "100m3", price: 6500000 },
+    { code: "AL.17110", desc: "Chống thấm sàn vệ sinh bằng màng khò nóng", unit: "m2", price: 215000 },
+    { code: "AI.11211", desc: "Sản xuất kết cấu thép cột", unit: "tấn", price: 24500000 },
+    { code: "AI.63221", desc: "Lắp dựng xà gồ thép", unit: "tấn", price: 6300000 },
+    { code: "AK.12220", desc: "Lợp mái tôn sóng dày 0,45mm", unit: "100m2", price: 18500000 }
+  ];
+  var PRESETS = [
+    ["Bê tông cột mác 300 đá 1x2", "m3"], ["Cốp pha cột", "m2"], ["Thép cột D16", "kg"],
+    ["Concrete roof slab C25", "m3"], ["Chống thấm WC", "m2"], ["Sơn ngoài nhà 3 nước", "m2"], ["Lợp tôn mái", "m3"]
+  ];
+  // [regex trên chuỗi đã bỏ dấu, các token khái niệm]
+  var PHRASES = [
+    [/\bsan xuat\b/g, "sanxuat"],
+    [/\bket cau thep\b|\bstructural steel\b/g, "c_thep c_kct"],
+    [/\bcot thep\b|\brebar\b/g, "c_thep c_rebar"],
+    [/\bd\d{1,2}\b|\bphi ?\d{1,2}\b/g, "c_rebar"],
+    [/\bthep\b|\bsteel\b/g, "c_thep"],
+    [/\bbe tong\b|\bbetong\b|\bconcrete\b|\bbt\b/g, "c_betong"],
+    [/\bvan khuon\b|\bcop ?pha\b|\bcopfa\b|\bformwork\b/g, "c_copha"],
+    [/\bmac 300\b|\bm300\b|\bc25\b|\bb22\.?5\b/g, "c_m300"],
+    [/\bmac 250\b|\bm250\b|\bc20\b/g, "c_m250"],
+    [/\bmac 100\b|\bm100\b/g, "c_m100"],
+    [/\bmac 75\b|\bm75\b/g, "c_m75"],
+    [/\bda 1x2\b|\b1x2\b/g, "c_d1x2"],
+    [/\bda 4x6\b|\b4x6\b/g, "c_d4x6"],
+    [/\bchong tham\b|\bwaterproof(ing)?\b/g, "c_chongtham"],
+    [/\bve sinh\b|\bwc\b|\btoilet\b/g, "c_wc"],
+    [/\bngoai nha\b|\bngoai\b|\bexternal\b|\bexterior\b/g, "c_ngoai"],
+    [/\bcolumn\b|\bcot\b/g, "c_cot"],
+    [/\bslab\b|\bsan\b/g, "c_san"],
+    [/\broof\b|\bmai\b/g, "c_mai"],
+    [/\bwall\b|\btuong\b/g, "c_tuong"],
+    [/\bpaint(ing)?\b|\bson\b/g, "c_son"],
+    [/\bplaster(ing)?\b|\btrat\b/g, "c_trat"],
+    [/\bton\b|\bmetal sheet\b/g, "c_ton"],
+    [/\bfoundation\b|\bfooting\b|\bmong\b/g, "c_mong"]
+  ];
+  var STOP = { va: 1, bang: 1, cho: 1, loai: 1, cac: 1, voi: 1, day: 1, cao: 1, tiet: 1, dien: 1, duong: 1, kinh: 1, nuoc: 1, lop: 1, lot: 1, phu: 1, nha: 1, vuong: 1, chu: 1, nhat: 1, go: 1, may: 1, xm: 1, vua: 1 };
+  var DIM = { m3: "thể tích", "100m3": "thể tích", m2: "diện tích", "100m2": "diện tích", m: "chiều dài", kg: "khối lượng", "tấn": "khối lượng" };
+  var FACT = { m3: 1, "100m3": 100, m2: 1, "100m2": 100, m: 1, kg: 0.001, "tấn": 1 };
+  var LABEL = { c_thep: "thép", c_kct: "kết cấu thép", c_rebar: "cốt thép", c_betong: "bê tông", c_copha: "cốp pha", c_m300: "mác 300", c_m250: "mác 250", c_m100: "mác 100", c_m75: "vữa M75", c_d1x2: "đá 1x2", c_d4x6: "đá 4x6", c_chongtham: "chống thấm", c_wc: "vệ sinh", c_ngoai: "ngoài nhà", c_cot: "cột", c_san: "sàn", c_mai: "mái", c_tuong: "tường", c_son: "sơn", c_trat: "trát", c_ton: "tôn", c_mong: "móng" };
+
+  function fold(s) {
+    return s.toLowerCase().replace(/đ/g, "d").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[²³]/g, "").replace(/,/g, " ");
+  }
+  function tokens(s) {
+    var t = " " + fold(s) + " ";
+    PHRASES.forEach(function (p) { t = t.replace(p[0], " " + p[1] + " "); });
+    var seen = {}, out = [];
+    t.split(/[^a-z0-9_]+/).forEach(function (w) {
+      if (!w || STOP[w] || seen[w]) return;
+      if (/^\d+[a-z]*$/.test(w) || w.length < 2) return;
+      seen[w] = 1; out.push(w);
+    });
+    return out;
+  }
+  function score(q, qu, c) {
+    var Q = tokens(q), C = tokens(c.desc);
+    var Cs = {}; C.forEach(function (x) { Cs[x] = 1; });
+    var hit = Q.filter(function (x) { return Cs[x]; });
+    var cov = Q.length ? hit.length / Q.length : 0;
+    var ov = Q.length && C.length ? hit.length / Math.min(Q.length, C.length) : 0;
+    var same = DIM[qu] && DIM[c.unit] && DIM[qu] === DIM[c.unit];
+    var uf = (DIM[qu] && DIM[c.unit] && !same) ? 0.55 : 1;
+    var exact = fold(q).trim() === fold(c.desc).trim();
+    var s = exact ? 1 : Math.round((0.65 * cov + 0.35 * ov) * uf * 1e4) / 1e4;
+    return { c: c, Q: Q, hit: hit, cov: cov, ov: ov, uf: uf, same: same, s: s };
+  }
+  function band(s) { return s >= 0.75 ? ["ok", "Khớp chắc"] : s >= 0.45 ? ["warn", "Cần soát"] : ["bad", "Không khớp"]; }
+  function lbl(t) { return LABEL[t] || t; }
+
+  function renderMatch() {
+    var q = $("m-q").value, u = $("m-u").value;
+    var Q = tokens(q);
+    $("m-toks").innerHTML = Q.length ? Q.map(function (t) { return '<span class="tok q">' + esc(lbl(t)) + "</span>"; }).join("") : "<i>chưa có từ khóa</i>";
+    var list = DB.map(function (c) { return score(q, u, c); }).sort(function (a, b) { return b.s - a.s; }).slice(0, 5);
+    $("m-out").innerHTML = list.map(function (m) {
+      var b = band(m.s);
+      var miss = m.Q.filter(function (x) { return m.hit.indexOf(x) < 0; });
+      var toks = m.hit.map(function (t) { return '<span class="tok hit">' + esc(lbl(t)) + "</span>"; }).join("") + miss.map(function (t) { return '<span class="tok miss">' + esc(lbl(t)) + "</span>"; }).join("");
+      var unitTxt = !DIM[u] || !DIM[m.c.unit] ? "ĐVT không xác định" : m.same ? "ĐVT " + u + " ↔ " + m.c.unit + " cùng " + DIM[u] : "ĐVT " + u + " ↔ " + m.c.unit + " khác thứ nguyên (" + DIM[u] + " / " + DIM[m.c.unit] + "), điểm × 0,55";
+      var conv = "";
+      if (m.same && u !== m.c.unit) conv = "<small>≈ " + VND(m.c.price / FACT[m.c.unit] * FACT[u]) + " /" + esc(u) + "</small>";
+      return '<div class="match"><div class="score ' + b[0] + '">' + m.s.toFixed(2) + '</div><div><div class="desc">' + esc(m.c.desc) + '</div><div class="code">' + m.c.code + ' · <span class="chip ' + b[0] + '">' + b[1] + '</span></div></div><div class="price">' + VND(m.c.price) + " /" + esc(m.c.unit) + conv +
+        '</div><div class="factors"><span>Độ phủ <b>' + m.cov.toFixed(2) + "</b></span><span>Độ trùng <b>" + m.ov.toFixed(2) + "</b></span><span>Hệ số ĐVT <b>" + m.uf.toFixed(2) + '</b></span></div><div class="why">' + toks + " " + esc(unitTxt) + "</div></div>";
+    }).join("");
+  }
+  $("m-presets").innerHTML = "<span style='font-size:12.5px;color:var(--muted);align-self:center'>Thử nhanh:</span>" + PRESETS.map(function (p, i) { return '<button type="button" data-i="' + i + '">' + esc(p[0]) + " · " + p[1] + "</button>"; }).join("");
+  $("m-presets").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var p = PRESETS[+b.dataset.i]; $("m-q").value = p[0]; $("m-u").value = p[1]; renderMatch();
+  });
+  $("m-q").addEventListener("input", renderMatch);
+  $("m-u").addEventListener("change", renderMatch);
+  renderMatch();
+
+  /* ══ M3 · Kiểm tra BOQ ══════════════════════════════ */
+  var NRM = { "5": "Đào & đắp", "11": "Bê tông tại chỗ", "14": "Xây", "15": "Kết cấu thép", "17": "Lợp mái tấm", "28": "Hoàn thiện sàn/tường/trần", "29": "Sơn, trang trí" };
+  var BOQ = [
+    { nrm: "5", desc: "Đào đất móng bằng máy, đất cấp II", unit: "m3", qty: 1240, rate: 68000, ref: 65000 },
+    { nrm: "11", desc: "Bê tông lót móng đá 4x6 M100", unit: "m3", qty: 86, rate: 1180000, ref: 1150000 },
+    { nrm: "11", desc: "Bê tông móng đá 1x2 M250", unit: "m3", qty: 412, rate: 1520000, ref: 1480000 },
+    { nrm: "11", desc: "Bê tông cột đá 1x2 M300", unit: "m3", qty: null, rate: 1690000, ref: 1690000 },
+    { nrm: "11", desc: "Cốp pha cột", unit: "m2", qty: 1860, rate: 185000, ref: 172000 },
+    { nrm: "", desc: "Cốt thép cột ĐK ≤18mm", unit: "tấn", qty: 64.5, rate: 18900000, ref: 19200000 },
+    { nrm: "14", desc: "Xây tường gạch đặc dày 220, vữa M75", unit: "m3", qty: 538, rate: 1450000, ref: 1420000 },
+    { nrm: "28", desc: "Trát tường ngoài dày 15, vữa M75", unit: "m2", qty: 4200, rate: 96000, ref: 92000 },
+    { nrm: "29", desc: "Sơn tường ngoài 1 lót 2 phủ", unit: "m2", qty: 4200, rate: 0, ref: 78000 },
+    { nrm: "28", desc: "Trát tường ngoài dày 15, vữa M75", unit: "m2", qty: 4200, rate: 96000, ref: 92000 },
+    { nrm: "17", desc: "Lợp mái tôn sóng dày 0,45mm", unit: "m2", qty: 2950, rate: 265000, ref: 185000 },
+    { nrm: "15", desc: "Sản xuất & lắp dựng kết cấu thép", unit: "tấn", qty: 182, rate: 31500000, ref: 30800000 }
+  ];
+  function parseNum(s) { if (s == null) return null; s = String(s).trim().replace(/\./g, "").replace(",", "."); if (s === "") return null; var n = Number(s); return isFinite(n) ? n : null; }
+  function fmtIn(n) { return n == null ? "" : n.toLocaleString("vi-VN", { maximumFractionDigits: 2 }); }
+
+  function checkBOQ() {
+    var seen = {}, issues = [], errors = 0, warns = 0;
+    var per = BOQ.map(function (r, i) {
+      var f = [];
+      if (!r.qty) f.push(["bad", "Thiếu khối lượng"]);
+      if (!r.rate) f.push(["bad", "Đơn giá = 0"]);
+      var key = fold(r.desc).replace(/\s+/g, " ").trim() + "|" + r.unit;
+      if (seen[key] != null) f.push(["warn", "Trùng dòng " + (seen[key] + 1)]); else seen[key] = i;
+      if (!r.nrm) f.push(["warn", "Thiếu mã NRM2"]);
+      if (r.rate && r.ref && Math.abs(r.rate / r.ref - 1) > 0.3) f.push(["warn", "Lệch CSDL " + (r.rate / r.ref > 1 ? "+" : "") + Math.round((r.rate / r.ref - 1) * 100) + "%"]);
+      f.forEach(function (x) { if (x[0] === "bad") errors++; else warns++; issues.push([x[0], "Dòng " + (i + 1) + ": " + x[1] + ", " + r.desc]); });
+      return f;
+    });
+    return { per: per, issues: issues, score: Math.max(0, 100 - errors * 10 - warns * 4), errors: errors, warns: warns };
+  }
+  function renderBOQ(skipRows) {
+    var c = checkBOQ(), total = 0;
+    BOQ.forEach(function (r) { total += (r.qty || 0) * (r.rate || 0); });
+    if (!skipRows) {
+      $("v-rows").innerHTML = BOQ.map(function (r, i) {
+        return "<tr data-i='" + i + "'><td class='n'>" + (i + 1) + "</td><td>" + (r.nrm ? "<span title='" + esc(NRM[r.nrm] || "") + "'>" + r.nrm + "</span>" : "–") + "</td><td>" + esc(r.desc) + "</td><td>" + r.unit +
+          "</td><td class='n'><input class='cell' id='v-q-" + i + "' data-k='qty' value='" + fmtIn(r.qty) + "' aria-label='Khối lượng dòng " + (i + 1) + "'></td><td class='n'><input class='cell' id='v-p-" + i + "' data-k='rate' value='" + fmtIn(r.rate) + "' aria-label='Đơn giá dòng " + (i + 1) + "'></td><td class='n' style='color:var(--muted)'>" + VND(r.ref) +
+          "</td><td class='n' id='v-t-" + i + "'></td><td id='v-f-" + i + "'></td></tr>";
+      }).join("");
+    }
+    BOQ.forEach(function (r, i) {
+      var f = c.per[i];
+      $("v-t-" + i).textContent = VND((r.qty || 0) * (r.rate || 0));
+      $("v-f-" + i).innerHTML = f.length ? '<div class="notes">' + f.map(function (x) { return '<span class="chip ' + x[0] + '">' + esc(x[1]) + "</span>"; }).join("") + "</div>" : '<span class="chip ok">Đạt</span>';
+      var tr = $("v-t-" + i).parentNode;
+      tr.className = f.some(function (x) { return x[0] === "bad"; }) ? "sev-bad" : f.length ? "sev-warn" : "sev-ok";
+    });
+    $("v-score").textContent = c.score;
+    var lvl = c.score >= 85 ? "g" : c.score >= 60 ? "y" : "r";
+    ["r", "y", "g"].forEach(function (k) { $("v-" + k).classList.toggle("on", k === lvl); });
+    $("v-verdict").textContent = (lvl === "g" ? "Sẵn sàng chào giá" : lvl === "y" ? "Cần chỉnh trước khi chào" : "Chưa đạt") + " · " + c.errors + " lỗi, " + c.warns + " cảnh báo";
+    $("v-total").textContent = VND(total) + " đ";
+    $("v-issues").innerHTML = c.issues.length ? c.issues.map(function (x) { return '<li><span class="chip ' + x[0] + '">' + (x[0] === "bad" ? "Lỗi" : "Cảnh báo") + "</span><span>" + esc(x[1]) + "</span></li>"; }).join("") : '<li><span class="chip ok">Đạt</span><span>Không còn vấn đề nào.</span></li>';
+  }
+  $("v-rows").addEventListener("change", function (e) {
+    var inp = e.target; if (!inp.classList.contains("cell")) return;
+    var i = +inp.closest("tr").dataset.i;
+    BOQ[i][inp.dataset.k] = parseNum(inp.value);
+    inp.value = fmtIn(BOQ[i][inp.dataset.k]);
+    renderBOQ(true);
+  });
+  renderBOQ();
+
+  /* ══ M4 · CVR ═══════════════════════════════════════ */
+  var CVR = [
+    { code: "01", name: "Phần ngầm", cost: 8420, value: 9150, acc: 120, fcost: 8900, fvalue: 9800 },
+    { code: "02", name: "Kết cấu BTCT thân", cost: 14300, value: 15020, acc: 380, fcost: 21600, fvalue: 23400 },
+    { code: "03", name: "Kết cấu thép & mái", cost: 6850, value: 6600, acc: 210, fcost: 11200, fvalue: 10900 },
+    { code: "04", name: "Hoàn thiện", cost: 2100, value: 2450, acc: 60, fcost: 9800, fvalue: 11200 },
+    { code: "05", name: "MEP (NTP)", cost: 3200, value: 3350, acc: 150, fcost: 11600, fvalue: 12400 },
+    { code: "06", name: "Chi phí chung công trường", cost: 4150, value: 4000, acc: 90, fcost: 4050, fvalue: 6200 }
+  ];
+  var PLAN_W = [1800, 3200, 4500, 5600, 6400, 7000, 7200, 7100, 6800, 6200, 5400, 4300, 3100, 2100];
+  var VAL_W = [1500, 2900, 4200, 5300, 6100, 6600, 6900, 7070];
+  var COST_W = [1600, 3000, 4300, 5200, 5900, 6300, 6500, 6220];
+  var FIELDS = [["cost", "Chi phí lũy kế"], ["value", "Giá trị lũy kế"], ["acc", "Trích trước"], ["fcost", "Chi phí dự báo"], ["fvalue", "Giá trị dự báo"]];
+
+  function summarise() {
+    var t = { cost: 0, value: 0, acc: 0, fcost: 0, fvalue: 0 }, warns = [];
+    CVR.forEach(function (l) {
+      FIELDS.forEach(function (f) { t[f[0]] += l[f[0]] || 0; });
+      l.flags = [];
+      if (l.fcost < l.cost) l.flags.push("Chi phí dự báo thấp hơn lũy kế");
+      if (l.fvalue < l.value) l.flags.push("Giá trị dự báo thấp hơn lũy kế");
+      l.flags.forEach(function (f) { warns.push(l.code + ": " + f); });
+    });
+    t.margin = t.value - t.cost; t.fmargin = t.fvalue - t.fcost;
+    t.pct = t.value > 0 ? t.margin / t.value * 100 : 0;
+    t.fpct = t.fvalue > 0 ? t.fmargin / t.fvalue * 100 : 0;
+    t.warns = warns;
+    return t;
+  }
+  function cum(w, total) { var s = w.reduce(function (a, b) { return a + b; }, 0), run = 0; return w.map(function (x) { run += x / s * total; return run; }); }
+
+  function renderCVR(skipRows) {
+    var t = summarise(), ret = Math.min(100, Math.max(0, Number($("c-ret").value) || 0));
+    var net = Math.max(0, t.value * (1 - ret / 100));
+    var k = [
+      ["Giá trị thực hiện lũy kế", TR(t.value) + " tr", "Chi phí " + TR(t.cost) + " tr", ""],
+      ["Lợi nhuận lũy kế", (t.margin >= 0 ? "+" : "") + TR(t.margin) + " tr", P1(t.pct) + "% trên giá trị", t.margin >= 0 ? "pos" : "neg"],
+      ["Lợi nhuận dự báo khi hoàn thành", (t.fmargin >= 0 ? "+" : "") + TR(t.fmargin) + " tr", P1(t.fpct) + "% trên " + TR(t.fvalue) + " tr", t.fmargin >= 0 ? "pos" : "neg"],
+      ["Thực nhận sau giữ lại " + ret + "%", TR(net) + " tr", t.warns.length + " cảnh báo dự báo", ""]
+    ];
+    $("c-kpis").innerHTML = k.map(function (x) { return '<div class="kpi"><div class="l">' + esc(x[0]) + '</div><div class="v ' + x[3] + '">' + x[1] + '</div><div class="s">' + esc(x[2]) + "</div></div>"; }).join("");
+    if (!skipRows) {
+      $("c-rows").innerHTML = CVR.map(function (l, i) {
+        return "<tr data-i='" + i + "'><td class='n'>" + l.code + "</td><td class='nm'>" + esc(l.name) + "</td>" + FIELDS.map(function (f) {
+          return "<td class='n'><input class='cell' style='width:84px' id='c-" + f[0] + "-" + i + "' data-k='" + f[0] + "' value='" + fmtIn(l[f[0]]) + "' aria-label='" + f[1] + " " + esc(l.name) + "'></td>";
+        }).join("") + "<td class='n' id='c-m-" + i + "'></td><td id='c-b-" + i + "'></td><td id='c-w-" + i + "'></td></tr>";
+      }).join("");
+    }
+    CVR.forEach(function (l, i) {
+      var m = l.fvalue - l.fcost, p = l.fvalue > 0 ? m / l.fvalue * 100 : 0;
+      var cell = $("c-m-" + i); cell.textContent = (m >= 0 ? "+" : "") + TR(m); cell.style.color = m >= 0 ? "var(--ok)" : "var(--bad)";
+      var w = Math.min(50, Math.abs(p) / 20 * 50);
+      $("c-b-" + i).innerHTML = '<div style="display:flex;gap:8px;align-items:center"><div class="mbar"><div class="mid"></div><div class="f" style="' + (p >= 0 ? "left:50%;" : "right:50%;") + "width:" + w + "%;background:" + (p >= 0 ? "var(--ok)" : "var(--bad)") + '"></div></div><span style="font-family:var(--font-num);font-size:12px">' + P1(p) + "%</span></div>";
+      $("c-w-" + i).innerHTML = l.flags.length ? '<div class="notes">' + l.flags.map(function (f) { return '<span class="chip warn">' + esc(f) + "</span>"; }).join("") + "</div>" : '<span class="chip ok">Ổn</span>';
+    });
+    drawS(t, ret);
+  }
+
+  function drawS(t, ret) {
+    var W = 760, H = 300, pl = 48, pr = 16, pt = 14, pb = 34;
+    var plan = cum(PLAN_W, t.fvalue), val = cum(VAL_W, t.value), cost = cum(COST_W, t.cost);
+    var recv = val.map(function (v) { return v * (1 - ret / 100); });
+    var n = PLAN_W.length;
+    var maxY = Math.max(plan[n - 1], t.fcost, val[val.length - 1], cost[cost.length - 1]);
+    var stepT = maxY / 1000 > 50 ? 20 : 10; // tỷ
+    var top = Math.ceil(maxY / 1000 / stepT) * stepT;
+    var x = function (i) { return pl + (i + 1) / n * (W - pl - pr); };
+    var y = function (v) { return pt + (1 - v / 1000 / top) * (H - pt - pb); };
+    var g = "";
+    for (var v = 0; v <= top; v += stepT) {
+      g += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(v * 1000) + '" y2="' + y(v * 1000) + '" stroke="var(--line)" stroke-width="1"/>';
+      g += '<text x="' + (pl - 8) + '" y="' + (y(v * 1000) + 4) + '" text-anchor="end">' + v + "</text>";
+    }
+    for (var i = 0; i < n; i++) g += '<text x="' + x(i) + '" y="' + (H - pb + 18) + '" text-anchor="middle">T' + (i + 1) + "</text>";
+    g += '<line x1="' + x(VAL_W.length - 1) + '" x2="' + x(VAL_W.length - 1) + '" y1="' + pt + '" y2="' + (H - pb) + '" stroke="var(--muted)" stroke-dasharray="3 4"/>';
+    g += '<text x="' + (x(VAL_W.length - 1) + 6) + '" y="' + (pt + 10) + '">Báo cáo T' + VAL_W.length + "</text>";
+    function path(arr, col, wdt, dash) {
+      var d = arr.map(function (v, i) { return (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1); }).join(" ");
+      var last = arr.length - 1;
+      return '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="' + wdt + '"' + (dash ? ' stroke-dasharray="' + dash + '"' : "") + ' stroke-linejoin="round"/>' +
+        '<circle cx="' + x(last) + '" cy="' + y(arr[last]) + '" r="4" fill="' + col + '"/>';
+    }
+    var area = "M" + x(0) + " " + y(0) + " " + val.map(function (v, i) { return "L" + x(i).toFixed(1) + " " + y(v).toFixed(1); }).join(" ") + " L" + x(val.length - 1) + " " + y(0) + "Z";
+    g += '<path d="' + area + '" fill="var(--accent-soft)" opacity=".7"/>';
+    g += path(plan, "var(--idle)", 2, "5 4") + path(recv, "var(--hi)", 2) + path(cost, "var(--bad)", 2) + path(val, "var(--accent)", 2.5);
+    var li = val.length - 1;
+    g += '<text x="' + (x(li) - 8) + '" y="' + (y(val[li]) - 10) + '" text-anchor="end" style="fill:var(--accent)">' + P1(val[li] / 1000) + " tỷ</text>";
+    g += '<text x="' + (x(n - 1)) + '" y="' + (y(plan[n - 1]) - 10) + '" text-anchor="end">KH ' + P1(plan[n - 1] / 1000) + " tỷ</text>";
+    $("c-chart").innerHTML = g;
+  }
+  $("c-rows").addEventListener("change", function (e) {
+    var inp = e.target; if (!inp.classList.contains("cell")) return;
+    var i = +inp.closest("tr").dataset.i, v = parseNum(inp.value);
+    CVR[i][inp.dataset.k] = v == null ? 0 : v;
+    inp.value = fmtIn(CVR[i][inp.dataset.k]);
+    renderCVR(true);
+  });
+  $("c-ret").addEventListener("input", function () { renderCVR(true); });
+  renderCVR();
+})();
+</script>
