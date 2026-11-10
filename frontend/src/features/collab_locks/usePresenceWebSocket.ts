@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useAuthStore } from '@/stores/useAuthStore';
 import { authFrame, socketUrl } from '@/shared/lib/socketAuth';
+import { closeWebSocket } from '@/shared/lib/closeWebSocket';
 
 export interface PresenceUser {
   user_id: string;
@@ -157,11 +158,7 @@ export function usePresenceWebSocket(
 
     return () => {
       closed = true;
-      try {
-        ws.close();
-      } catch {
-        // ignore
-      }
+      closeWebSocket(ws);
       wsRef.current = null;
     };
   }, [enabled, entityType, entityId]);

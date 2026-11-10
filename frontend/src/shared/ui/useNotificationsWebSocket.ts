@@ -20,6 +20,7 @@ import { useEffect, useRef } from 'react';
 
 import { useAuthStore } from '@/stores/useAuthStore';
 import { authFrame, socketUrl } from '@/shared/lib/socketAuth';
+import { closeWebSocket } from '@/shared/lib/closeWebSocket';
 
 export type NotificationsWsStatus = 'idle' | 'connecting' | 'open' | 'closed' | 'error';
 
@@ -95,11 +96,7 @@ export function useNotificationsWebSocket(
 
     return () => {
       closed = true;
-      try {
-        ws.close();
-      } catch {
-        // ignore
-      }
+      closeWebSocket(ws);
       wsRef.current = null;
     };
   }, [enabled]);

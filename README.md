@@ -261,7 +261,7 @@ The entire UI ships in **44 languages**, including full right-to-left support fo
 
 ## A Look Inside
 
-A quick tour of the main workspaces. Every screen is the real application running the 70-project demo spanning 30+ countries that ships with a fresh install.
+A quick tour of the main workspaces. Every screen is the real application running the showcase demo projects that ship with a fresh install, spanning several countries.
 
 <table>
 <tr>
@@ -511,7 +511,7 @@ Three demo accounts are created on first start. On a local install, sign in to a
 | Estimator | `estimator@openconstructionerp.com` | `DemoPass1234!` | Estimator |
 | Manager | `manager@openconstructionerp.com` | `DemoPass1234!` | Manager |
 
-> Demo accounts include 70 pre-loaded projects across 30+ countries with complete BOQs, schedules and cost models, from a Berlin residential block and a Paris school to a Dubai warehouse, a Shanghai office tower, a Toronto condo and a Guangzhou renovation.
+> Demo accounts come with 13 pre-loaded showcase projects, each with complete BOQs, schedules and cost models, from a Berlin residential block and a Paris school to a Dubai warehouse, a Shanghai office tower, a Toronto condo and a Delhi government building. Regional partner packs add more demo projects when you activate them from the Modules page.
 >
 > **Security note.** For any internet-exposed deployment, set the three
 > `DEMO_*_PASSWORD` variables to strong, unique secrets, or disable demo

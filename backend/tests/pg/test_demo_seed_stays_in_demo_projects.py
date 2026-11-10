@@ -113,6 +113,26 @@ async def _owner(session) -> uuid.UUID:
     return owner_id
 
 
+async def _demo_account(session) -> None:
+    """The demo sign-in an earlier release created in this database."""
+    from app.modules.users.service import hash_password
+
+    session.add(
+        User(
+            id=uuid.uuid4(),
+            email="demo@openconstructionerp.com",
+            # The boot compares this against DEMO_USER_PASSWORD, so it must be a real hash.
+            hashed_password=hash_password("demo-password-for-tests"),
+            full_name="Elena Marchetti",
+            role="admin",
+            locale="en",
+            is_active=True,
+            metadata_={},
+        )
+    )
+    await session.flush()
+
+
 async def _project(session, owner_id: uuid.UUID, name: str, *, demo_id: str | None = None, status="active"):
     project_id = uuid.uuid4()
     session.add(
@@ -923,6 +943,9 @@ async def test_an_install_that_removed_its_demos_before_the_record_existed_gets_
     async with boot_factory() as s:
         owner_id = await _owner(s)
         real = await _project(s, owner_id, "Warehouse Extension Leipzig")
+        # The earlier release's install: its demo account is already in this
+        # database, which is what makes the marker a true "seeded before".
+        await _demo_account(s)
         await s.commit()
 
     with caplog.at_level("INFO"):
@@ -1317,3 +1340,49 @@ async def test_the_settings_preview_lists_rows_and_removes_only_the_confirmed_on
         assert done.json()["total"] == 2
     assert await _rows(boot_factory, DailyDiary, real) == 2
     assert await _present(boot_factory, DailyDiary, [uuid.UUID(rows[2]["id"])]) == 1
+
+
+# ── A marker that belongs to another database ───────────────────────────────
+
+
+async def test_a_marker_from_another_database_does_not_erase_a_fresh_showcase(boot_factory, monkeypatch) -> None:
+    """A fresh database on a machine whose data dir still holds an old marker.
+
+    The marker lives in the data dir, not in the database, so on its own it can
+    say "seeded before" about a database that never held a demo. Nothing was
+    removed from this one: the boot must not record a removal, so the showcase
+    installs.
+    """
+    import app.main as main
+    from app.core.demo_marker import retired_demo_ids
+
+    _boot_as_a_desktop_install(monkeypatch, pack=None)
+    # Deferred, so the boot only decides what to install; the showcase seeders
+    # themselves are covered by the other tests in this file.
+    showcase = await main._seed_demo_account(defer_projects=True)
+
+    async with boot_factory() as s:
+        assert await retired_demo_ids(s) == set()
+    assert showcase is not None, "a fresh database must get its showcase"
+
+
+async def test_a_showcase_cut_short_by_a_restart_is_not_read_as_a_removal(boot_factory, monkeypatch) -> None:
+    """Accounts left by a boot that closed before its showcase finished removed nothing.
+
+    The pending flag marks that cut-short seed; with it set the backfill must
+    not take the empty showcase for a removal.
+    """
+    import app.main as main
+    from app.core.demo_marker import retired_demo_ids
+    from app.core.seed_once import set_demo_projects_pending
+
+    _boot_as_a_desktop_install(monkeypatch, pack=None)
+    async with boot_factory() as s:
+        await _demo_account(s)
+        await s.commit()
+    await set_demo_projects_pending(True)
+
+    await main._seed_demo_account(defer_projects=True)
+
+    async with boot_factory() as s:
+        assert await retired_demo_ids(s) == set()

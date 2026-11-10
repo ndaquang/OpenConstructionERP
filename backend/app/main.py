@@ -1553,12 +1553,22 @@ async def _seed_demo_account(*, defer_projects: bool = False) -> Callable[[], Aw
 
     # Track generated credentials so we can persist + print them once.
     generated_creds: dict[str, str] = {}
+    # Whether this database already held the demo accounts before this boot
+    # created any. Read by the removal backfill below.
+    demo_accounts_before_boot = False
 
     try:
         from app.modules.users.service import verify_password
 
         async with async_session_factory() as session:
             demo: User | None = None
+            demo_accounts_before_boot = (
+                await session.execute(
+                    select(func.count())
+                    .select_from(User)
+                    .where(User.email.in_([acct["email"] for acct in demo_account_specs]))
+                )
+            ).scalar_one() > 0
             for acct in demo_account_specs:
                 exists = (await session.execute(select(User).where(User.email == acct["email"]))).scalar_one_or_none()
                 if exists is not None:
@@ -1700,12 +1710,26 @@ async def _seed_demo_account(*, defer_projects: bool = False) -> Callable[[], Aw
         try:
             from app.core.demo_marker import backfill_removed_demo_records
             from app.core.demo_seed import read_demo_seed_choice
+            from app.core.seed_once import demo_projects_pending
+
+            # The marker file lives in the data dir, not in the database, and
+            # outlives the database it describes: a fresh database on a machine
+            # that once ran an install would read it as "seeded before" and
+            # record every showcase demo as removed, so none would ever install.
+            # It counts only when this database already held the demo accounts
+            # before this boot (so the install really ran here) and no earlier
+            # showcase was cut short (a cut-short seed removed nothing).
+            seeded_before = (
+                demo_accounts_before_boot
+                and _read_demo_backfill_version() is not None
+                and not await demo_projects_pending()
+            ) or read_demo_seed_choice() is False
 
             async with async_session_factory() as tb_session:
                 await backfill_removed_demo_records(
                     tb_session,
                     _boot_demo_ids(active),
-                    seeded_before=_read_demo_backfill_version() is not None or read_demo_seed_choice() is False,
+                    seeded_before=seeded_before,
                 )
                 await tb_session.commit()
         except Exception:

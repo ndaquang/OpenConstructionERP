@@ -427,6 +427,23 @@ export default defineConfig({
           process.env.E2E_BACKEND ??
           'http://127.0.0.1:8000',
         changeOrigin: true,
+        // The realtime endpoints (notifications, global presence) are
+        // WebSockets under /api. Without ``ws`` the dev proxy drops the
+        // upgrade and the browser logs "WebSocket is closed before the
+        // connection is established" on every page.
+        ws: true,
+        // The backend writes absolute URLs into the map styles it serves
+        // (MapLibre's worker cannot resolve relative ones), using the origin
+        // the caller reached it on. Through this proxy that origin would be the
+        // backend's own port, a different origin from the page, so the sprite
+        // and tile requests were blocked by CORS. Hand the backend the page's
+        // host so the styles point back at the dev server, which proxies them.
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            const host = req.headers.host;
+            if (host) proxyReq.setHeader('X-Forwarded-Host', host);
+          });
+        },
         // 30 minutes. Catalogue v3 installs (`/costs/catalogues-v3/{id}/install`)
         // download a 200–500 MB snapshot from Hugging Face, stream it
         // multipart into Qdrant, then poll Qdrant for collection

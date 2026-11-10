@@ -29,6 +29,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useProjectContextStore } from '@/stores/useProjectContextStore';
 import { authFrame, socketUrl } from '@/shared/lib/socketAuth';
+import { closeWebSocket } from '@/shared/lib/closeWebSocket';
 import {
   useGlobalPresenceStore,
   type GlobalPresenceUser,
@@ -313,7 +314,7 @@ export function useGlobalPresenceSocket(): void {
       }
       cleanupTimers();
       try {
-        wsRef.current?.close();
+        closeWebSocket(wsRef.current);
       } catch {
         // ignore
       }
